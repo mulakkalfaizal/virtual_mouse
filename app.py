@@ -23,7 +23,7 @@ mouse = Controller()
 detector = DETECTOR
 
 wScr, hScr = 2880, 1800  # Resolution of my laptop display
-frameR = 75
+frameR = 50
 smoothening = 5
 plocX, plocY = 0, 0
 cloxX, clocY = 0, 0
@@ -108,13 +108,13 @@ while True:
                 # Point 8 is the tip of index finger
                 if startDistance is None:
                     length, info, img = detector.findDistance(lmlist1[8][0:2], lmlist2[8][0:2], img)
-                    print(f"{length=}")
+                    #print(f"{length=}")
                     startDistance = length
 
                 length, info, img = detector.findDistance(lmlist1[8][0:2], lmlist2[8][0:2], img)
                 scale = int(length - startDistance) // 2
                 cx, cy = info[4:]
-                print(f"{scale=}")
+                #print(f"{scale=}")
             else:
                 startDistance = None
 
