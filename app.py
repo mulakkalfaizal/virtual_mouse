@@ -3,6 +3,13 @@ import numpy as np
 from cvzone.HandTrackingModule import HandDetector
 from pynput.mouse import Button, Controller
 import time
+import osascript
+import subprocess
+import clipboard
+
+print(f"1: {clipboard.paste()}")
+
+DETECTOR = HandDetector(detectionCon=0.8)
 
 wCam, hCam = 640, 480
 pTime = 0
@@ -13,7 +20,7 @@ cap.set(3, wCam)
 cap.set(4, hCam)
 
 mouse = Controller()
-detector = HandDetector(detectionCon=0.8, maxHands=1)
+detector = DETECTOR
 
 wScr, hScr = 2880, 1800  # Resolution of my laptop display
 frameR = 100
@@ -21,9 +28,21 @@ smoothening = 5
 plocX, plocY = 0, 0
 cloxX, clocY = 0, 0
 
+
+startDistance = None
+scale = 0
+cx, cy = 500, 500
+
+image_clicked = False
+
+print(f"2 : {clipboard.paste()}")
 while True:
     success, img = cap.read()
     hands, img = detector.findHands(img, draw=True)
+
+    # img1 = cv2.imread('/Users/mohammadfaizal/Desktop/kerala2.png')
+    #
+    # img[10:177, 10:333] = img1
 
     # print(len(hands))
     if len(hands) != 0:
@@ -36,6 +55,7 @@ while True:
 
         if detector.fingersUp(hands[0]) == [0, 1, 0, 0, 0]:
             print("Moving mode activated")
+            print(f"3: {clipboard.paste()}")
 
             x3 = np.interp(x1, (frameR, wCam - frameR), (0, wScr))
             y3 = np.interp(y1, (frameR, hCam - frameR), (0, hScr))
@@ -56,13 +76,54 @@ while True:
 
         if detector.fingersUp(hands[0]) == [0, 1, 1, 0, 0]:
             print("Clicking Mode activated")
+            print(f"4: {clipboard.paste()}")
 
             length, info, img = detector.findDistance(lmlist[8][0:2], lmlist[12][0:2], img)
             # print(length)
-            if length < 35:
+
+            if length < 25:
                 print("Clicking ..")
-                mouse.click(Button.left, 2)
-                time.sleep(2)
+                print(f"5: {clipboard.paste()}")
+                # mouse.click(Button.left, 2)
+                #clipboard.copy("")
+                mouse.click(Button.left, 1)
+                #time.sleep(2)
+                osascript.osascript(f'tell application "System Events" to keystroke "c" using {{option down, command down}}')
+                time.sleep(1)
+                file_path = clipboard.paste()
+                print(f"{file_path=}")
+
+
+                image_clicked = True
+                #if file_path.endswith('.PNG'):
+    if image_clicked:
+        img1 = cv2.imread(file_path)
+
+        try:
+            img[10:177, 10:333] = img1
+        except:
+            pass
+
+
+            # if len(hands) == 2:
+            #     if detector.fingersUp(hands[0]) == [1, 1, 0, 0, 0] and detector.fingersUp(hands[1]) == [1, 1, 0, 0, 0]:
+            #         print("zoom gesture")
+            #         lmlist1 = hands[0]["lmList"]
+            #         lmlist2 = hands[1]["lmList"]
+            #
+            #         # Point 8 is the tip of index finger
+            #         if startDistance is None:
+            #             length, info, img = detector.findDistance(lmlist1[8][0:2], lmlist2[8][0:2], img)
+            #             print(f"{length=}")
+            #             startDistance = length
+            #
+            #         length, info, img = detector.findDistance(lmlist1[8][0:2], lmlist2[8][0:2], img)
+            #         scale = int(length - startDistance) // 2
+            #         cx, cy = info[4:]
+            #         print(f"{scale=}")
+            #     else:
+            #         startDistance = None
+
         #
         #
         #     ix1, iy1 = lmlist[8][0:2]
