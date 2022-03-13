@@ -15,7 +15,7 @@ cap.set(4, hCam)
 mouse = Controller()
 detector = HandDetector(detectionCon=0.8, maxHands=1)
 
-wScr, hScr = 2880, 1800
+wScr, hScr = 2880, 1800  # Resolution of my laptop display
 frameR = 100
 smoothening = 5
 plocX, plocY = 0, 0
@@ -23,7 +23,7 @@ cloxX, clocY = 0, 0
 
 while True:
     success, img = cap.read()
-    hands, img = detector.findHands(img)
+    hands, img = detector.findHands(img, draw=True)
 
     # print(len(hands))
     if len(hands) != 0:
@@ -61,7 +61,8 @@ while True:
             # print(length)
             if length < 35:
                 print("Clicking ..")
-                #mouse.click(Button.left, 2)
+                mouse.click(Button.left, 2)
+                time.sleep(2)
         #
         #
         #     ix1, iy1 = lmlist[8][0:2]
