@@ -7,7 +7,7 @@ import osascript
 import subprocess
 import clipboard
 
-print(f"1: {clipboard.paste()}")
+#print(f"1: {clipboard.paste()}")
 
 DETECTOR = HandDetector(detectionCon=0.8)
 
@@ -16,14 +16,14 @@ pTime = 0
 cTime = 0
 
 cap = cv2.VideoCapture(0)
-cap.set(3, wCam)
-cap.set(4, hCam)
+# cap.set(3, wCam)
+# cap.set(4, hCam)
 
 mouse = Controller()
 detector = DETECTOR
 
 wScr, hScr = 2880, 1800  # Resolution of my laptop display
-frameR = 100
+frameR = 75
 smoothening = 5
 plocX, plocY = 0, 0
 cloxX, clocY = 0, 0
@@ -35,7 +35,7 @@ cx, cy = 500, 500
 
 image_clicked = False
 
-print(f"2 : {clipboard.paste()}")
+#print(f"2 : {clipboard.paste()}")
 while True:
     success, img = cap.read()
     hands, img = detector.findHands(img, draw=True)
@@ -55,7 +55,7 @@ while True:
 
         if detector.fingersUp(hands[0]) == [0, 1, 0, 0, 0]:
             print("Moving mode activated")
-            print(f"3: {clipboard.paste()}")
+            #print(f"3: {clipboard.paste()}")
 
             x3 = np.interp(x1, (frameR, wCam - frameR), (0, wScr))
             y3 = np.interp(y1, (frameR, hCam - frameR), (0, hScr))
@@ -76,14 +76,14 @@ while True:
 
         if detector.fingersUp(hands[0]) == [0, 1, 1, 0, 0]:
             print("Clicking Mode activated")
-            print(f"4: {clipboard.paste()}")
+            #print(f"4: {clipboard.paste()}")
 
             length, info, img = detector.findDistance(lmlist[8][0:2], lmlist[12][0:2], img)
             # print(length)
 
             if length < 25:
                 print("Clicking ..")
-                print(f"5: {clipboard.paste()}")
+                #print(f"5: {clipboard.paste()}")
                 # mouse.click(Button.left, 2)
                 #clipboard.copy("")
                 mouse.click(Button.left, 1)
@@ -96,41 +96,37 @@ while True:
 
                 image_clicked = True
                 #if file_path.endswith('.PNG'):
-    if image_clicked:
+    if image_clicked and file_path.endswith('.png' or 'jpeg'):
         img1 = cv2.imread(file_path)
 
+        if len(hands) == 2:
+            if detector.fingersUp(hands[0]) == [1, 1, 0, 0, 0] and detector.fingersUp(hands[1]) == [1, 1, 0, 0, 0]:
+                print("zoom gesture")
+                lmlist1 = hands[0]["lmList"]
+                lmlist2 = hands[1]["lmList"]
+
+                # Point 8 is the tip of index finger
+                if startDistance is None:
+                    length, info, img = detector.findDistance(lmlist1[8][0:2], lmlist2[8][0:2], img)
+                    print(f"{length=}")
+                    startDistance = length
+
+                length, info, img = detector.findDistance(lmlist1[8][0:2], lmlist2[8][0:2], img)
+                scale = int(length - startDistance) // 2
+                cx, cy = info[4:]
+                print(f"{scale=}")
+            else:
+                startDistance = None
+
         try:
-            img[10:177, 10:333] = img1
+            h1, w1, _ = img1.shape
+            newH, newW = ((h1 + scale) // 2) * 2, ((w1 + scale) // 2) * 2
+            img1 = cv2.resize(img1, (newW, newH))
+
+            img[cy - newH // 2:cy + newH // 2, cx - newW // 2:cx + newW // 2] = img1
+        # img[10:177, 10:333] = img1
         except:
             pass
-
-
-            # if len(hands) == 2:
-            #     if detector.fingersUp(hands[0]) == [1, 1, 0, 0, 0] and detector.fingersUp(hands[1]) == [1, 1, 0, 0, 0]:
-            #         print("zoom gesture")
-            #         lmlist1 = hands[0]["lmList"]
-            #         lmlist2 = hands[1]["lmList"]
-            #
-            #         # Point 8 is the tip of index finger
-            #         if startDistance is None:
-            #             length, info, img = detector.findDistance(lmlist1[8][0:2], lmlist2[8][0:2], img)
-            #             print(f"{length=}")
-            #             startDistance = length
-            #
-            #         length, info, img = detector.findDistance(lmlist1[8][0:2], lmlist2[8][0:2], img)
-            #         scale = int(length - startDistance) // 2
-            #         cx, cy = info[4:]
-            #         print(f"{scale=}")
-            #     else:
-            #         startDistance = None
-
-        #
-        #
-        #     ix1, iy1 = lmlist[8][0:2]
-        #     mx1, my1 = lmlist[12][0:2]
-        #
-        #     print(f"Index finger Lm: x ->{ix1} :: y->{iy1}")
-        #     print(f"Middle finger Lm: x ->{mx1} :: y->{my1}")
 
     cTime = time.time()
     fps = 1 / (cTime - pTime)
